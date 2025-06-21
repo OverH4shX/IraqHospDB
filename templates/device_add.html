@@ -1,0 +1,66 @@
+{% extends "layout.html" %}
+
+{% block title %}إضافة جهاز معتمد{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">إضافة جهاز معتمد جديد</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('device_add') }}">
+                        <div class="alert alert-info">
+                            <p><strong>ملاحظة:</strong> عنوان IP الخاص بهذا الجهاز هو <strong>{{ client_ip }}</strong></p>
+                            <p>يمكنك استخدام هذا العنوان أو إدخال عنوان آخر يدوياً.</p>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="ip_address" class="form-label">عنوان IP <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="ip_address" name="ip_address" value="{{ client_ip }}" required>
+                            <div class="form-text">أدخل عنوان IP للجهاز المراد إضافته مثل 192.168.1.100</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="device_name" class="form-label">اسم الجهاز <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="device_name" name="device_name" required>
+                            <div class="form-text">أدخل اسمًا وصفيًا للجهاز مثل "كمبيوتر قسم الاستقبال"</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">وصف الجهاز</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                            <div class="form-text">أدخل وصفًا إضافيًا للجهاز (اختياري)</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="hospital_id" class="form-label">المستشفى <span class="text-danger">*</span></label>
+                            <select class="form-select" id="hospital_id" name="hospital_id" required>
+                                {% for hospital in hospitals %}
+                                <option value="{{ hospital.id }}" {% if hospital.id == current_user.hospital_id %}selected{% endif %}>{{ hospital.name }} ({{ hospital.name_arabic }})</option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">حدد المستشفى الذي ينتمي إليه هذا الجهاز</div>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                            <label class="form-check-label" for="is_active">
+                                تنشيط هذا الجهاز فوراً
+                            </label>
+                            <div class="form-text">قم بإلغاء التحديد إذا كنت ترغب في إضافة الجهاز دون تنشيطه حالياً</div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('device_list') }}" class="btn btn-secondary">إلغاء</a>
+                            <button type="submit" class="btn btn-primary">إضافة الجهاز</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

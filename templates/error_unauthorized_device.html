@@ -1,0 +1,51 @@
+{% extends "layout.html" %}
+
+{% block title %}غير مصرح للجهاز{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="card-title mb-0"><i class="fas fa-exclamation-triangle"></i> خطأ: جهاز غير مصرح</h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-lock fa-5x text-danger mb-3"></i>
+                        <h3>لا يمكن الوصول إلى النظام من هذا الجهاز</h3>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <p>عنوان IP الخاص بجهازك: <strong>{{ client_ip }}</strong></p>
+                        <p>هذا الجهاز غير مسجل في قائمة الأجهزة المعتمدة للوصول إلى نظام إدارة السجلات الطبية.</p>
+                    </div>
+                    
+                    <p class="lead">للحفاظ على أمان وسرية السجلات الطبية للمرضى، يسمح فقط للأجهزة المعتمدة بالوصول إلى النظام.</p>
+                    
+                    <hr>
+                    
+                    <h5>ماذا يمكنني أن أفعل؟</h5>
+                    <ul>
+                        <li>اتصل بمسؤول النظام في المستشفى لإضافة هذا الجهاز إلى قائمة الأجهزة المعتمدة.</li>
+                        <li>استخدم جهازًا آخر معتمدًا للوصول إلى النظام.</li>
+                        <li>إذا كنت مسؤولًا، قم بتسجيل الدخول من جهاز معتمد ثم أضف هذا الجهاز.</li>
+                    </ul>
+                    
+                    {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                    <div class="alert alert-info mt-3">
+                        <p><strong>ملاحظة للمسؤول:</strong> بما أنك مسجل الدخول كمسؤول، يمكنك إضافة هذا الجهاز من خلال الضغط على الزر أدناه:</p>
+                        <a href="{{ url_for('device_add') }}" class="btn btn-primary">إضافة هذا الجهاز</a>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a href="{{ url_for('logout') }}" class="btn btn-secondary">تسجيل الخروج</a>
+                        <a href="{{ url_for('login') }}" class="btn btn-primary">محاولة تسجيل الدخول مرة أخرى</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

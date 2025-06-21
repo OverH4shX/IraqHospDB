@@ -1,0 +1,128 @@
+{% extends "layout.html" %}
+
+{% block title %}قائمة الأجهزة المعتمدة{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-primary-subtle">
+                <div class="card-body">
+                    <h2 class="card-title">
+                        <i class="fas fa-list me-2"></i>
+                        قائمة المرضى
+                    </h2>
+                    <p class="card-text">قائمة المرضى المسجلين في مستشفى {{ current_user.hospital.name_arabic }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-users me-2"></i>
+                        المرضى
+                    </h5>
+                    <a href="{{ url_for('patient_register') }}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-user-plus me-1"></i> تسجيل مريض جديد
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if patients.items %}
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped">
+                            <thead>
+                                <tr>
+                                    <th>الاسم</th>
+                                    <th>الرقم الوطني</th>
+                                    <th>رقم الهاتف</th>
+                                    <th>فصيلة الدم</th>
+                                    <th>تاريخ الميلاد</th>
+                                    <th>الجنس</th>
+                                    <th>تاريخ التسجيل</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for patient in patients.items %}
+                                <tr>
+                                    <td>{{ patient.full_name_arabic }}</td>
+                                    <td>{{ patient.national_id if patient.national_id else '-' }}</td>
+                                    <td>{{ patient.phone }}</td>
+                                    <td>{{ patient.blood_type if patient.blood_type else '-' }}</td>
+                                    <td>{{ patient.date_of_birth.strftime('%Y-%m-%d') }}</td>
+                                    <td>{{ patient.gender }}</td>
+                                    <td>{{ patient.created_at.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        <a href="{{ url_for('patient_view', patient_id=patient.id) }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> عرض
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <nav aria-label="Patient pagination">
+                        <ul class="pagination justify-content-center mt-4">
+                            {% if patients.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('patient_list', page=patients.prev_num) }}">
+                                    <i class="fas fa-chevron-right"></i> السابق
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="fas fa-chevron-right"></i> السابق</span>
+                            </li>
+                            {% endif %}
+                            
+                            {% for page_num in patients.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                                {% if page_num %}
+                                    {% if patients.page == page_num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ page_num }}</span>
+                                    </li>
+                                    {% else %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('patient_list', page=page_num) }}">{{ page_num }}</a>
+                                    </li>
+                                    {% endif %}
+                                {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if patients.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('patient_list', page=patients.next_num) }}">
+                                    التالي <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">التالي <i class="fas fa-chevron-left"></i></span>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    
+                    {% else %}
+                    <div class="alert alert-info" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        لم يتم تسجيل أي مرضى حتى الآن.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

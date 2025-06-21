@@ -1,0 +1,355 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container">
+    <!-- Patient Info Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-info-subtle">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="card-title mb-0">
+                                <i class="fas fa-user-circle me-2"></i>
+                                {{ patient.full_name_arabic }}
+                            </h2>
+                            <p class="text-muted mb-0">{{ patient.full_name }}</p>
+                        </div>
+                        <a href="{{ url_for('patient_search') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>
+                            العودة للبحث
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <!-- Personal Information -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        المعلومات الشخصية
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <strong>الرقم الوطني:</strong>
+                            <p>{{ patient.national_id if patient.national_id else 'غير محدد' }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>تاريخ الميلاد:</strong>
+                            <p>{{ patient.date_of_birth.strftime('%Y-%m-%d') }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>الجنس:</strong>
+                            <p>{{ patient.gender }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>فصيلة الدم:</strong>
+                            <p>{{ patient.blood_type if patient.blood_type else 'غير محدد' }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>رقم الهاتف:</strong>
+                            <p>{{ patient.phone }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>العنوان:</strong>
+                            <p>{{ patient.address if patient.address else 'غير محدد' }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>جهة اتصال الطوارئ:</strong>
+                            <p>{{ patient.emergency_contact if patient.emergency_contact else 'غير محدد' }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>هاتف الطوارئ:</strong>
+                            <p>{{ patient.emergency_phone if patient.emergency_phone else 'غير محدد' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Chronic Diseases -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-heartbeat me-2"></i>
+                        الأمراض المزمنة
+                    </h5>
+                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addDiseaseModal">
+                        <i class="fas fa-plus me-1"></i> إضافة
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% if chronic_diseases %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>اسم المرض</th>
+                                    <th>تاريخ التشخيص</th>
+                                    <th>ملاحظات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for disease in chronic_diseases %}
+                                <tr>
+                                    <td>{{ disease.disease_name_arabic if disease.disease_name_arabic else disease.disease_name }}</td>
+                                    <td>{{ disease.diagnosis_date.strftime('%Y-%m-%d') if disease.diagnosis_date else 'غير محدد' }}</td>
+                                    <td>{{ disease.notes if disease.notes else '-' }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        لا توجد أمراض مزمنة مسجلة حتى الآن.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <!-- Medical Tests -->
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-flask me-2"></i>
+                        التحاليل الطبية
+                    </h5>
+                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addTestModal">
+                        <i class="fas fa-plus me-1"></i> إضافة
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% if medical_tests %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>اسم التحليل</th>
+                                    <th>التاريخ</th>
+                                    <th>النتيجة</th>
+                                    <th>المدى الطبيعي</th>
+                                    <th>الطبيب</th>
+                                    <th>المستشفى</th>
+                                    <th>ملاحظات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for test in medical_tests %}
+                                <tr>
+                                    <td>{{ test.test_name_arabic if test.test_name_arabic else test.test_name }}</td>
+                                    <td>{{ test.test_date.strftime('%Y-%m-%d') }}</td>
+                                    <td>{{ test.test_result }}</td>
+                                    <td>{{ test.normal_range if test.normal_range else '-' }}</td>
+                                    <td>{{ test.doctor_name if test.doctor_name else '-' }}</td>
+                                    <td>{{ test.hospital.name_arabic }}</td>
+                                    <td>{{ test.notes if test.notes else '-' }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        لا توجد تحاليل طبية مسجلة حتى الآن.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Surgeries -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-procedures me-2"></i>
+                        العمليات الجراحية
+                    </h5>
+                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addSurgeryModal">
+                        <i class="fas fa-plus me-1"></i> إضافة
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% if surgeries %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>اسم العملية</th>
+                                    <th>التاريخ</th>
+                                    <th>الجراح</th>
+                                    <th>المستشفى</th>
+                                    <th>الوصف</th>
+                                    <th>ملاحظات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for surgery in surgeries %}
+                                <tr>
+                                    <td>{{ surgery.surgery_name_arabic if surgery.surgery_name_arabic else surgery.surgery_name }}</td>
+                                    <td>{{ surgery.surgery_date.strftime('%Y-%m-%d') }}</td>
+                                    <td>{{ surgery.surgeon_name if surgery.surgeon_name else '-' }}</td>
+                                    <td>{{ surgery.hospital.name_arabic }}</td>
+                                    <td>{{ surgery.description if surgery.description else '-' }}</td>
+                                    <td>{{ surgery.notes if surgery.notes else '-' }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        لا توجد عمليات جراحية مسجلة حتى الآن.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modals -->
+    <!-- Add Disease Modal -->
+    <div class="modal fade" id="addDiseaseModal" tabindex="-1" aria-labelledby="addDiseaseModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addDiseaseModalLabel">إضافة مرض مزمن</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ url_for('add_disease', patient_id=patient.id) }}" method="post">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="disease_name" class="form-label">اسم المرض (بالإنجليزية) <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="disease_name" name="disease_name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="disease_name_arabic" class="form-label">اسم المرض (بالعربية)</label>
+                            <input type="text" class="form-control" id="disease_name_arabic" name="disease_name_arabic">
+                        </div>
+                        <div class="mb-3">
+                            <label for="diagnosis_date" class="form-label">تاريخ التشخيص</label>
+                            <input type="date" class="form-control" id="diagnosis_date" name="diagnosis_date">
+                        </div>
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">ملاحظات</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                        <button type="submit" class="btn btn-primary">حفظ</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Test Modal -->
+    <div class="modal fade" id="addTestModal" tabindex="-1" aria-labelledby="addTestModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addTestModalLabel">إضافة تحليل طبي</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ url_for('add_medical_test', patient_id=patient.id) }}" method="post">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="test_name" class="form-label">اسم التحليل (بالإنجليزية) <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="test_name" name="test_name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="test_name_arabic" class="form-label">اسم التحليل (بالعربية)</label>
+                            <input type="text" class="form-control" id="test_name_arabic" name="test_name_arabic">
+                        </div>
+                        <div class="mb-3">
+                            <label for="test_date" class="form-label">تاريخ التحليل <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="test_date" name="test_date" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="test_result" class="form-label">النتيجة <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="test_result" name="test_result" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="normal_range" class="form-label">المدى الطبيعي</label>
+                            <input type="text" class="form-control" id="normal_range" name="normal_range">
+                        </div>
+                        <div class="mb-3">
+                            <label for="doctor_name" class="form-label">اسم الطبيب</label>
+                            <input type="text" class="form-control" id="doctor_name" name="doctor_name">
+                        </div>
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">ملاحظات</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                        <button type="submit" class="btn btn-primary">حفظ</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Surgery Modal -->
+    <div class="modal fade" id="addSurgeryModal" tabindex="-1" aria-labelledby="addSurgeryModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addSurgeryModalLabel">إضافة عملية جراحية</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ url_for('add_surgery', patient_id=patient.id) }}" method="post">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="surgery_name" class="form-label">اسم العملية (بالإنجليزية) <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="surgery_name" name="surgery_name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="surgery_name_arabic" class="form-label">اسم العملية (بالعربية)</label>
+                            <input type="text" class="form-control" id="surgery_name_arabic" name="surgery_name_arabic">
+                        </div>
+                        <div class="mb-3">
+                            <label for="surgery_date" class="form-label">تاريخ العملية <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="surgery_date" name="surgery_date" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="surgeon_name" class="form-label">اسم الجراح</label>
+                            <input type="text" class="form-control" id="surgeon_name" name="surgeon_name">
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">وصف العملية</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">ملاحظات</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                        <button type="submit" class="btn btn-primary">حفظ</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

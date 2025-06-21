@@ -1,0 +1,549 @@
+{% extends "layout.html" %}
+
+{% block title %}وثائق واجهة برمجة التطبيقات (API){% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-primary-subtle">
+                <div class="card-body">
+                    <h2 class="card-title">
+                        <i class="fas fa-file-code me-2"></i>
+                        وثائق واجهة برمجة التطبيقات (API)
+                    </h2>
+                    <p class="card-text">دليل استخدام واجهة برمجة التطبيقات للتطبيق المصاحب للهاتف المحمول</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <div class="list-group" id="api-sections-nav">
+                <a class="list-group-item list-group-item-action active" href="#introduction">مقدمة</a>
+                <a class="list-group-item list-group-item-action" href="#authentication">المصادقة</a>
+                <a class="list-group-item list-group-item-action" href="#device-auth">تفويض الأجهزة</a>
+                <a class="list-group-item list-group-item-action" href="#patients">إدارة المرضى</a>
+                <a class="list-group-item list-group-item-action" href="#medical-tests">الفحوصات الطبية</a>
+                <a class="list-group-item list-group-item-action" href="#chronic-diseases">الأمراض المزمنة</a>
+                <a class="list-group-item list-group-item-action" href="#surgeries">العمليات الجراحية</a>
+                <a class="list-group-item list-group-item-action" href="#hospitals">المستشفيات</a>
+                <a class="list-group-item list-group-item-action" href="#statistics">الإحصائيات</a>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <!-- المقدمة -->
+            <div class="card mb-4" id="introduction">
+                <div class="card-header bg-light">
+                    <h3 class="mb-0">مقدمة</h3>
+                </div>
+                <div class="card-body">
+                    <p>واجهة برمجة التطبيقات (API) هي واجهة آمنة توفر الوصول إلى بيانات قاعدة البيانات المركزية للرعاية الصحية في العراق للتطبيقات المحمولة المعتمدة.</p>
+                    
+                    <h5>نقاط هامة:</h5>
+                    <ul>
+                        <li>تستخدم الواجهة رموز JWT (JSON Web Tokens) للمصادقة.</li>
+                        <li>جميع الطلبات يجب أن تحتوي على رأس التفويض (Authorization header) يحمل الرمز.</li>
+                        <li>يتم تقييد الوصول للأجهزة المعتمدة فقط داخل المستشفيات.</li>
+                        <li>جميع الردود تأتي بتنسيق JSON.</li>
+                    </ul>
+                    
+                    <h5>رابط الوصول الأساسي:</h5>
+                    <pre class="bg-light p-2 rounded"><code>{{ request.url_root }}api/</code></pre>
+                </div>
+            </div>
+            
+            <!-- المصادقة -->
+            <div class="card mb-4" id="authentication">
+                <div class="card-header bg-light">
+                    <h3 class="mb-0">المصادقة</h3>
+                </div>
+                <div class="card-body">
+                    <h5>تسجيل الدخول والحصول على الرمز</h5>
+                    <div class="table-responsive mb-3">
+                        <table class="table table-bordered">
+                            <tr>
+                                <th style="width: 100px;">طريقة الطلب</th>
+                                <td><code>POST</code></td>
+                            </tr>
+                            <tr>
+                                <th>المسار</th>
+                                <td><code>/api/login</code></td>
+                            </tr>
+                            <tr>
+                                <th>المعلمات</th>
+                                <td>
+                                    <ul class="mb-0">
+                                        <li><code>username</code> (مطلوب): اسم المستخدم</li>
+                                        <li><code>password</code> (مطلوب): كلمة المرور</li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>الاستجابة</th>
+                                <td>
+<pre><code>{
+    "message": "تم تسجيل الدخول بنجاح",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+        "id": 1,
+        "username": "username",
+        "full_name": "الاسم الكامل",
+        "email": "user@example.com",
+        "role": "staff",
+        "hospital_id": 1,
+        "hospital_name": "اسم المستشفى"
+    }
+}</code></pre>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <h5>استخدام الرمز في الطلبات اللاحقة</h5>
+                    <p>بعد الحصول على الرمز، يجب إرساله في رأس التفويض مع كل طلب بالصيغة التالية:</p>
+                    <pre class="bg-light p-2 rounded"><code>Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...</code></pre>
+                </div>
+            </div>
+            
+            <!-- تفويض الأجهزة -->
+            <div class="card mb-4" id="device-auth">
+                <div class="card-header bg-light">
+                    <h3 class="mb-0">تفويض الأجهزة</h3>
+                </div>
+                <div class="card-body">
+                    <p>لضمان أمان البيانات، يتم تقييد الوصول للأجهزة المعتمدة فقط داخل المستشفيات. يجب أن يكون عنوان IP للجهاز مسجلاً في قائمة الأجهزة المعتمدة لنفس المستشفى.</p>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        إذا كان الجهاز غير معتمد، ستتلقى رسالة خطأ بالرمز 403 Forbidden.
+                    </div>
+                    
+                    <p>يمكن للمسؤولين إضافة أجهزة معتمدة جديدة من واجهة الويب الرئيسية.</p>
+                </div>
+            </div>
+            
+            <!-- إدارة المرضى -->
+            <div class="card mb-4" id="patients">
+                <div class="card-header bg-light">
+                    <h3 class="mb-0">إدارة المرضى</h3>
+                </div>
+                <div class="card-body">
+                    <!-- الحصول على قائمة المرضى -->
+                    <h5 class="border-bottom pb-2 mb-3">الحصول على قائمة المرضى</h5>
+                    <div class="table-responsive mb-4">
+                        <table class="table table-bordered">
+                            <tr>
+                                <th style="width: 100px;">طريقة الطلب</th>
+                                <td><code>GET</code></td>
+                            </tr>
+                            <tr>
+                                <th>المسار</th>
+                                <td><code>/api/patients</code></td>
+                            </tr>
+                            <tr>
+                                <th>المعلمات</th>
+                                <td>
+                                    <ul class="mb-0">
+                                        <li><code>q</code> (اختياري): نص البحث</li>
+                                        <li><code>page</code> (اختياري): رقم الصفحة (الافتراضي: 1)</li>
+                                        <li><code>per_page</code> (اختياري): عدد العناصر في الصفحة (الافتراضي: 10)</li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>الاستجابة</th>
+                                <td>
+<pre><code>{
+    "total": 50,
+    "pages": 5,
+    "current_page": 1,
+    "per_page": 10,
+    "patients": [
+        {
+            "id": 1,
+            "full_name": "John Doe",
+            "full_name_arabic": "جون دو",
+            "national_id": "1234567890",
+            "date_of_birth": "1980-01-01",
+            "gender": "ذكر",
+            "blood_type": "O+",
+            "phone": "07700000000"
+        },
+        ...
+    ]
+}</code></pre>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <!-- الحصول على معلومات مريض -->
+                    <h5 class="border-bottom pb-2 mb-3">الحصول على معلومات مريض</h5>
+                    <div class="table-responsive mb-4">
+                        <table class="table table-bordered">
+                            <tr>
+                                <th style="width: 100px;">طريقة الطلب</th>
+                                <td><code>GET</code></td>
+                            </tr>
+                            <tr>
+                                <th>المسار</th>
+                                <td><code>/api/patients/{patient_id}</code></td>
+                            </tr>
+                            <tr>
+                                <th>المعلمات</th>
+                                <td>
+                                    <ul class="mb-0">
+                                        <li><code>patient_id</code> (مطلوب): معرف المريض</li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>الاستجابة</th>
+                                <td>
+<pre><code>{
+    "id": 1,
+    "full_name": "John Doe",
+    "full_name_arabic": "جون دو",
+    "national_id": "1234567890",
+    "date_of_birth": "1980-01-01",
+    "gender": "ذكر",
+    "blood_type": "O+",
+    "phone": "07700000000",
+    "address": "بغداد، العراق",
+    "emergency_contact": "Jane Doe",
+    "emergency_phone": "07700000001",
+    "created_at": "2023-01-01 00:00:00",
+    "updated_at": "2023-01-01 00:00:00",
+    "chronic_diseases": [...],
+    "medical_tests": [...],
+    "surgeries": [...]
+}</code></pre>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <!-- إضافة مريض جديد -->
+                    <h5 class="border-bottom pb-2 mb-3">إضافة مريض جديد</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <tr>
+                                <th style="width: 100px;">طريقة الطلب</th>
+                                <td><code>POST</code></td>
+                            </tr>
+                            <tr>
+                                <th>المسار</th>
+                                <td><code>/api/patients</code></td>
+                            </tr>
+                            <tr>
+                                <th>المعلمات</th>
+                                <td>
+                                    <ul class="mb-0">
+                                        <li><code>full_name</code> (مطلوب): الاسم الكامل</li>
+                                        <li><code>full_name_arabic</code> (مطلوب): الاسم الكامل بالعربية</li>
+                                        <li><code>gender</code> (مطلوب): الجنس</li>
+                                        <li><code>date_of_birth</code> (مطلوب): تاريخ الميلاد (YYYY-MM-DD)</li>
+                                        <li><code>phone</code> (مطلوب): رقم الهاتف</li>
+                                        <li><code>national_id</code> (اختياري): الرقم الوطني</li>
+                                        <li><code>blood_type</code> (اختياري): فصيلة الدم</li>
+                                        <li><code>address</code> (اختياري): العنوان</li>
+                                        <li><code>emergency_contact</code> (اختياري): جهة اتصال للطوارئ</li>
+                                        <li><code>emergency_phone</code> (اختياري): هاتف للطوارئ</li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>الاستجابة</th>
+                                <td>
+<pre><code>{
+    "message": "تم إضافة المريض بنجاح",
+    "patient_id": 123
+}</code></pre>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- الفحوصات الطبية -->
+            <div class="card mb-4" id="medical-tests">
+                <div class="card-header bg-light">
+                    <h3 class="mb-0">الفحوصات الطبية</h3>
+                </div>
+                <div class="card-body">
+                    <h5 class="border-bottom pb-2 mb-3">إضافة فحص طبي جديد</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <tr>
+                                <th style="width: 100px;">طريقة الطلب</th>
+                                <td><code>POST</code></td>
+                            </tr>
+                            <tr>
+                                <th>المسار</th>
+                                <td><code>/api/patients/{patient_id}/tests</code></td>
+                            </tr>
+                            <tr>
+                                <th>المعلمات</th>
+                                <td>
+                                    <ul class="mb-0">
+                                        <li><code>test_name</code> (مطلوب): اسم الفحص</li>
+                                        <li><code>test_date</code> (مطلوب): تاريخ الفحص (YYYY-MM-DD)</li>
+                                        <li><code>test_result</code> (مطلوب): نتيجة الفحص</li>
+                                        <li><code>test_name_arabic</code> (اختياري): اسم الفحص بالعربية</li>
+                                        <li><code>normal_range</code> (اختياري): النطاق الطبيعي</li>
+                                        <li><code>doctor_name</code> (اختياري): اسم الطبيب</li>
+                                        <li><code>notes</code> (اختياري): ملاحظات إضافية</li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>الاستجابة</th>
+                                <td>
+<pre><code>{
+    "message": "تم إضافة الفحص الطبي بنجاح",
+    "test_id": 123
+}</code></pre>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- الأمراض المزمنة -->
+            <div class="card mb-4" id="chronic-diseases">
+                <div class="card-header bg-light">
+                    <h3 class="mb-0">الأمراض المزمنة</h3>
+                </div>
+                <div class="card-body">
+                    <h5 class="border-bottom pb-2 mb-3">إضافة مرض مزمن</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <tr>
+                                <th style="width: 100px;">طريقة الطلب</th>
+                                <td><code>POST</code></td>
+                            </tr>
+                            <tr>
+                                <th>المسار</th>
+                                <td><code>/api/patients/{patient_id}/diseases</code></td>
+                            </tr>
+                            <tr>
+                                <th>المعلمات</th>
+                                <td>
+                                    <ul class="mb-0">
+                                        <li><code>disease_name</code> (مطلوب): اسم المرض</li>
+                                        <li><code>disease_name_arabic</code> (اختياري): اسم المرض بالعربية</li>
+                                        <li><code>diagnosis_date</code> (اختياري): تاريخ التشخيص (YYYY-MM-DD)</li>
+                                        <li><code>notes</code> (اختياري): ملاحظات إضافية</li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>الاستجابة</th>
+                                <td>
+<pre><code>{
+    "message": "تم إضافة المرض المزمن بنجاح",
+    "disease_id": 123
+}</code></pre>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- العمليات الجراحية -->
+            <div class="card mb-4" id="surgeries">
+                <div class="card-header bg-light">
+                    <h3 class="mb-0">العمليات الجراحية</h3>
+                </div>
+                <div class="card-body">
+                    <h5 class="border-bottom pb-2 mb-3">إضافة عملية جراحية</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <tr>
+                                <th style="width: 100px;">طريقة الطلب</th>
+                                <td><code>POST</code></td>
+                            </tr>
+                            <tr>
+                                <th>المسار</th>
+                                <td><code>/api/patients/{patient_id}/surgeries</code></td>
+                            </tr>
+                            <tr>
+                                <th>المعلمات</th>
+                                <td>
+                                    <ul class="mb-0">
+                                        <li><code>surgery_name</code> (مطلوب): اسم العملية</li>
+                                        <li><code>surgery_date</code> (مطلوب): تاريخ العملية (YYYY-MM-DD)</li>
+                                        <li><code>surgery_name_arabic</code> (اختياري): اسم العملية بالعربية</li>
+                                        <li><code>surgeon_name</code> (اختياري): اسم الجراح</li>
+                                        <li><code>description</code> (اختياري): وصف العملية</li>
+                                        <li><code>notes</code> (اختياري): ملاحظات إضافية</li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>الاستجابة</th>
+                                <td>
+<pre><code>{
+    "message": "تم إضافة العملية الجراحية بنجاح",
+    "surgery_id": 123
+}</code></pre>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- المستشفيات -->
+            <div class="card mb-4" id="hospitals">
+                <div class="card-header bg-light">
+                    <h3 class="mb-0">المستشفيات</h3>
+                </div>
+                <div class="card-body">
+                    <h5 class="border-bottom pb-2 mb-3">الحصول على قائمة المستشفيات</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <tr>
+                                <th style="width: 100px;">طريقة الطلب</th>
+                                <td><code>GET</code></td>
+                            </tr>
+                            <tr>
+                                <th>المسار</th>
+                                <td><code>/api/hospitals</code></td>
+                            </tr>
+                            <tr>
+                                <th>المعلمات</th>
+                                <td>لا يوجد</td>
+                            </tr>
+                            <tr>
+                                <th>الاستجابة</th>
+                                <td>
+<pre><code>[
+    {
+        "id": 1,
+        "name": "Baghdad Medical City",
+        "name_arabic": "مدينة بغداد الطبية",
+        "location": "Baghdad, Iraq",
+        "governorate": "Baghdad",
+        "phone": "+964123456789",
+        "email": "info@baghdadmc.iq"
+    },
+    ...
+]</code></pre>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- الإحصائيات -->
+            <div class="card mb-4" id="statistics">
+                <div class="card-header bg-light">
+                    <h3 class="mb-0">الإحصائيات</h3>
+                </div>
+                <div class="card-body">
+                    <h5 class="border-bottom pb-2 mb-3">الحصول على إحصائيات المستشفى</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <tr>
+                                <th style="width: 100px;">طريقة الطلب</th>
+                                <td><code>GET</code></td>
+                            </tr>
+                            <tr>
+                                <th>المسار</th>
+                                <td><code>/api/stats</code></td>
+                            </tr>
+                            <tr>
+                                <th>المعلمات</th>
+                                <td>لا يوجد</td>
+                            </tr>
+                            <tr>
+                                <th>الاستجابة</th>
+                                <td>
+<pre><code>{
+    "total_patients": 150,
+    "total_tests": 300,
+    "total_surgeries": 50,
+    "blood_type_distribution": {
+        "A+": 45,
+        "O+": 60,
+        "B+": 30,
+        "AB+": 15
+    },
+    "gender_distribution": {
+        "ذكر": 80,
+        "أنثى": 70
+    }
+}</code></pre>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // تفعيل التنقل بين أقسام API
+    const navLinks = document.querySelectorAll('#api-sections-nav a');
+    
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // إزالة الفئة النشطة من جميع الروابط
+            navLinks.forEach(navLink => {
+                navLink.classList.remove('active');
+            });
+            
+            // إضافة الفئة النشطة للرابط المختار
+            this.classList.add('active');
+            
+            // الانتقال إلى القسم المطلوب
+            const targetId = this.getAttribute('href');
+            const targetElement = document.querySelector(targetId);
+            
+            window.scrollTo({
+                top: targetElement.offsetTop - 20,
+                behavior: 'smooth'
+            });
+        });
+    });
+    
+    // تفعيل القسم النشط عند التمرير
+    const sections = document.querySelectorAll('.card[id]');
+    
+    window.addEventListener('scroll', function() {
+        let current = '';
+        
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            const sectionHeight = section.clientHeight;
+            
+            if (pageYOffset >= (sectionTop - 100)) {
+                current = section.getAttribute('id');
+            }
+        });
+        
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === `#${current}`) {
+                link.classList.add('active');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

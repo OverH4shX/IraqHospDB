@@ -1,0 +1,245 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-primary-subtle">
+                <div class="card-body">
+                    <h2 class="card-title">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        التقارير والإحصائيات
+                    </h2>
+                    <p class="card-text">تقارير وإحصائيات مستشفى {{ current_user.hospital.name_arabic }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary mb-3 h-100">
+                <div class="card-body text-center">
+                    <h3 class="display-4">{{ total_patients }}</h3>
+                    <p class="card-text">
+                        <i class="fas fa-users me-2"></i>
+                        إجمالي المرضى
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-success mb-3 h-100">
+                <div class="card-body text-center">
+                    <h3 class="display-4">{{ total_tests }}</h3>
+                    <p class="card-text">
+                        <i class="fas fa-flask me-2"></i>
+                        التحاليل الطبية
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-info mb-3 h-100">
+                <div class="card-body text-center">
+                    <h3 class="display-4">{{ total_surgeries }}</h3>
+                    <p class="card-text">
+                        <i class="fas fa-procedures me-2"></i>
+                        العمليات الجراحية
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <!-- Blood Type Distribution Chart -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tint me-2"></i>
+                        توزيع فصائل الدم
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if blood_types %}
+                    <canvas id="bloodTypeChart"></canvas>
+                    {% else %}
+                    <div class="alert alert-info" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        لا توجد بيانات كافية لعرض هذا الرسم البياني.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Gender Distribution Chart -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-venus-mars me-2"></i>
+                        توزيع الجنس
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if gender_distribution %}
+                    <canvas id="genderChart"></canvas>
+                    {% else %}
+                    <div class="alert alert-info" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        لا توجد بيانات كافية لعرض هذا الرسم البياني.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Common Diseases -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-disease me-2"></i>
+                        الأمراض المزمنة الشائعة
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if common_diseases %}
+                    <canvas id="diseasesChart"></canvas>
+                    {% else %}
+                    <div class="alert alert-info" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        لا توجد بيانات كافية لعرض هذا الرسم البياني.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    {% if blood_types %}
+    // Blood Type Chart
+    fetch('/api/chart_data?type=blood_types')
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById('bloodTypeChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        data: data.data,
+                        backgroundColor: [
+                            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
+                            '#9966FF', '#FF9F40', '#8AC54B', '#EA526F'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        },
+                        title: {
+                            display: true,
+                            text: 'توزيع فصائل الدم'
+                        }
+                    }
+                }
+            });
+        });
+    {% endif %}
+    
+    {% if gender_distribution %}
+    // Gender Chart
+    fetch('/api/chart_data?type=gender')
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById('genderChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        data: data.data,
+                        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        },
+                        title: {
+                            display: true,
+                            text: 'توزيع الجنس'
+                        }
+                    }
+                }
+            });
+        });
+    {% endif %}
+    
+    {% if common_diseases %}
+    // Diseases Chart
+    fetch('/api/chart_data?type=diseases')
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById('diseasesChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'عدد المرضى',
+                        data: data.data,
+                        backgroundColor: '#36A2EB',
+                        borderColor: '#36A2EB',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'عدد المرضى'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'الأمراض المزمنة'
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'الأمراض المزمنة الشائعة'
+                        }
+                    }
+                }
+            });
+        });
+    {% endif %}
+});
+</script>
+{% endblock %}

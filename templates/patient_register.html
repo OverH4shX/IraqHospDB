@@ -1,0 +1,295 @@
+{% extends "layout.html" %}
+
+{% block title %}- تسجيل مريض جديد{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-header">
+                <h2><i class="fas fa-user-plus me-2"></i> تسجيل مريض جديد</h2>
+                <p class="text-muted">قم بتعبئة البيانات التالية لتسجيل مريض جديد في النظام</p>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('patient_register') }}" enctype="multipart/form-data">
+                        <div class="row">
+                            <!-- البيانات الأساسية -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">الاسم الكامل (بالإنجليزية) <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="full_name" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">الاسم الكامل (بالعربية) <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="full_name_arabic" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">الرقم الوطني</label>
+                                <input type="text" class="form-control" name="national_id">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">تاريخ الميلاد <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" name="date_of_birth" required>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">الجنس <span class="text-danger">*</span></label>
+                                <select class="form-select" name="gender" required>
+                                    <option value="male">ذكر</option>
+                                    <option value="female">أنثى</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">فصيلة الدم</label>
+                                <select class="form-select" name="blood_type">
+                                    <option value="">-- اختر --</option>
+                                    <option value="A+">A+</option>
+                                    <option value="A-">A-</option>
+                                    <option value="B+">B+</option>
+                                    <option value="B-">B-</option>
+                                    <option value="AB+">AB+</option>
+                                    <option value="AB-">AB-</option>
+                                    <option value="O+">O+</option>
+                                    <option value="O-">O-</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">رقم الهاتف <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="phone" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">العنوان</label>
+                                <input type="text" class="form-control" name="address">
+                            </div>
+                            
+                            <!-- بيانات الطوارئ -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">اسم شخص للاتصال في حالات الطوارئ</label>
+                                <input type="text" class="form-control" name="emergency_contact">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">رقم هاتف شخص الطوارئ</label>
+                                <input type="text" class="form-control" name="emergency_phone">
+                            </div>
+                            
+                            <!-- صورة المريض -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">صورة المريض (اختياري)</label>
+                                <input type="file" class="form-control" id="photo" name="photo" accept="image/*">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div id="photo-preview-container" class="d-none mt-2">
+                                    <img id="photo-preview" class="img-thumbnail" style="max-height: 150px;" />
+                                </div>
+                            </div>
+                            
+                            <!-- قسم الأمراض المزمنة -->
+                            <div class="col-md-12 mt-4 mb-3">
+                                <h5 class="border-bottom pb-2"><i class="fas fa-virus me-2"></i> الأمراض المزمنة (إن وجدت)</h5>
+                                <div id="chronic-diseases-container">
+                                    <div class="row chronic-disease-row">
+                                        <div class="col-md-5 mb-3">
+                                            <label class="form-label">اسم المرض (بالإنجليزية)</label>
+                                            <input type="text" class="form-control" name="disease_name">
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label">اسم المرض (بالعربية)</label>
+                                            <input type="text" class="form-control" name="disease_name_arabic">
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label class="form-label">تاريخ التشخيص</label>
+                                            <input type="date" class="form-control" name="diagnosis_date">
+                                        </div>
+                                        <div class="col-md-11 mb-3">
+                                            <label class="form-label">ملاحظات</label>
+                                            <input type="text" class="form-control" name="disease_notes">
+                                        </div>
+                                        <div class="col-md-1 mb-3 d-flex align-items-end">
+                                            <button type="button" class="btn btn-danger remove-disease" disabled>
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-12">
+                                        <button type="button" class="btn btn-success" id="add-disease">
+                                            <i class="fas fa-plus me-1"></i> إضافة مرض آخر
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- قسم الفحوصات الطبية -->
+                            <div class="col-md-12 mt-4 mb-3">
+                                <h5 class="border-bottom pb-2"><i class="fas fa-vial me-2"></i> سجل التحليلات والفحوصات الطبية</h5>
+                                <div id="medical-tests-container">
+                                    <div class="row medical-test-row">
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label">اسم الفحص (بالإنجليزية)</label>
+                                            <input type="text" class="form-control" name="test_name">
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label">اسم الفحص (بالعربية)</label>
+                                            <input type="text" class="form-control" name="test_name_arabic">
+                                        </div>
+                                        <div class="col-md-2 mb-3">
+                                            <label class="form-label">تاريخ الفحص</label>
+                                            <input type="date" class="form-control" name="test_date">
+                                        </div>
+                                        <div class="col-md-2 mb-3">
+                                            <label class="form-label">اسم الطبيب</label>
+                                            <input type="text" class="form-control" name="doctor_name">
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label">نتيجة الفحص</label>
+                                            <input type="text" class="form-control" name="test_result">
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label class="form-label">النطاق الطبيعي</label>
+                                            <input type="text" class="form-control" name="normal_range">
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label">ملف PDF للتحليل</label>
+                                            <input type="file" class="form-control" name="test_file" accept=".pdf">
+                                        </div>
+                                        <div class="col-md-1 mb-3 d-flex align-items-end">
+                                            <button type="button" class="btn btn-danger remove-test" disabled>
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-12">
+                                        <button type="button" class="btn btn-success" id="add-test">
+                                            <i class="fas fa-plus me-1"></i> إضافة فحص آخر
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- قسم العمليات الجراحية -->
+                            <div class="col-md-12 mt-4 mb-3">
+                                <h5 class="border-bottom pb-2"><i class="fas fa-procedures me-2"></i> سجل العمليات الجراحية</h5>
+                                <div id="surgeries-container">
+                                    <div class="row surgery-row">
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label">اسم العملية (بالإنجليزية)</label>
+                                            <input type="text" class="form-control" name="surgery_name">
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label">اسم العملية (بالعربية)</label>
+                                            <input type="text" class="form-control" name="surgery_name_arabic">
+                                        </div>
+                                        <div class="col-md-2 mb-3">
+                                            <label class="form-label">تاريخ العملية</label>
+                                            <input type="date" class="form-control" name="surgery_date">
+                                        </div>
+                                        <div class="col-md-2 mb-3">
+                                            <label class="form-label">اسم الجراح</label>
+                                            <input type="text" class="form-control" name="surgeon_name">
+                                        </div>
+                                        <div class="col-md-7 mb-3">
+                                            <label class="form-label">وصف العملية</label>
+                                            <textarea class="form-control" name="surgery_description" rows="2"></textarea>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label">ملف PDF للعملية</label>
+                                            <input type="file" class="form-control" name="surgery_file" accept=".pdf">
+                                        </div>
+                                        <div class="col-md-1 mb-3 d-flex align-items-end">
+                                            <button type="button" class="btn btn-danger remove-surgery" disabled>
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-12">
+                                        <button type="button" class="btn btn-success" id="add-surgery">
+                                            <i class="fas fa-plus me-1"></i> إضافة عملية أخرى
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 col-md-6 mx-auto mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save me-1"></i> تسجيل المريض
+                            </button>
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i> إلغاء
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        // إضافة صف جديد للأمراض المزمنة
+        $('#add-disease').click(function() {
+            var row = $('.chronic-disease-row').first().clone();
+            row.find('input').val('');
+            row.find('.remove-disease').prop('disabled', false);
+            $('#chronic-diseases-container').append(row);
+        });
+        
+        // حذف صف مرض مزمن
+        $(document).on('click', '.remove-disease', function() {
+            $(this).closest('.chronic-disease-row').remove();
+        });
+        
+        // إضافة صف جديد للفحوصات الطبية
+        $('#add-test').click(function() {
+            var row = $('.medical-test-row').first().clone();
+            row.find('input').val('');
+            row.find('input[type="file"]').val('');
+            row.find('.remove-test').prop('disabled', false);
+            $('#medical-tests-container').append(row);
+        });
+        
+        // حذف صف فحص طبي
+        $(document).on('click', '.remove-test', function() {
+            $(this).closest('.medical-test-row').remove();
+        });
+        
+        // إضافة صف جديد للعمليات الجراحية
+        $('#add-surgery').click(function() {
+            var row = $('.surgery-row').first().clone();
+            row.find('input').val('');
+            row.find('textarea').val('');
+            row.find('input[type="file"]').val('');
+            row.find('.remove-surgery').prop('disabled', false);
+            $('#surgeries-container').append(row);
+        });
+        
+        // حذف صف عملية جراحية
+        $(document).on('click', '.remove-surgery', function() {
+            $(this).closest('.surgery-row').remove();
+        });
+        
+        // معاينة الصورة قبل الرفع
+        $('#photo').change(function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#photo-preview').attr('src', e.target.result);
+                    $('#photo-preview-container').removeClass('d-none');
+                }
+                reader.readAsDataURL(file);
+            } else {
+                $('#photo-preview-container').addClass('d-none');
+            }
+        });
+    });
+</script>
+{% endblock %}

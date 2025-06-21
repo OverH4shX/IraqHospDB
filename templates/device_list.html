@@ -1,0 +1,90 @@
+{% extends "layout.html" %}
+
+{% block title %}قائمة الأجهزة المعتمدة{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">إدارة الأجهزة المعتمدة</h2>
+    
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="card-title mb-0">الأجهزة المعتمدة للوصول إلى النظام</h5>
+        </div>
+        <div class="card-body">
+            <p class="card-text">
+                يتم تقييد الوصول إلى نظام السجلات الطبية للمرضى للأجهزة المعتمدة فقط داخل المستشفيات.
+                يمكنك إضافة أو تعديل أو إلغاء تنشيط الأجهزة من هذه الصفحة.
+            </p>
+            
+            <a href="{{ url_for('device_add') }}" class="btn btn-success">
+                <i class="fas fa-plus"></i> إضافة جهاز جديد
+            </a>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">قائمة الأجهزة المعتمدة</h5>
+        </div>
+        <div class="card-body">
+            {% if devices %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>عنوان IP</th>
+                                <th>اسم الجهاز</th>
+                                <th>الوصف</th>
+                                <th>آخر وصول</th>
+                                <th>الحالة</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for device in devices %}
+                            <tr>
+                                <td>{{ device.ip_address }}</td>
+                                <td>{{ device.device_name }}</td>
+                                <td>{{ device.description or "—" }}</td>
+                                <td>
+                                    {% if device.last_access %}
+                                        {{ device.last_access.strftime('%Y-%m-%d %H:%M') }}
+                                    {% else %}
+                                        لم يتم الوصول بعد
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if device.is_active %}
+                                        <span class="badge bg-success">نشط</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">معطل</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ url_for('device_toggle', device_id=device.id) }}" class="btn btn-sm {% if device.is_active %}btn-warning{% else %}btn-success{% endif %}">
+                                            {% if device.is_active %}
+                                                <i class="fas fa-ban"></i> تعطيل
+                                            {% else %}
+                                                <i class="fas fa-check"></i> تنشيط
+                                            {% endif %}
+                                        </a>
+                                        <a href="{{ url_for('device_delete', device_id=device.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('هل أنت متأكد من حذف هذا الجهاز؟');">
+                                            <i class="fas fa-trash"></i> حذف
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    لا توجد أجهزة معتمدة مسجلة حالياً. قم بإضافة جهاز جديد باستخدام الزر أعلاه.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
